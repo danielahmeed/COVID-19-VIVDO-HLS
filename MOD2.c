@@ -2,6 +2,8 @@
 #include <string.h>
 #include "k2c_include.h"
 #include "k2c_tensor_include.h"
+#include "MOD2.h"
+
  k2c_tensor conv2d_output;
  k2c_tensor conv2d_kernel ;
  k2c_tensor conv2d_bias ;
@@ -13,349 +15,6 @@
  k2c_tensor flatten_output ;
  k2c_tensor dense_kernel ;
  k2c_tensor dense_bias ;
-void k2c_relu_func(float * x, const size_t size) {
-
-    for (size_t i=0; i < size; ++i) {
-        if (x[i] <= 0.0f) {
-            x[i] = 0.0f;
-        }
-    }
-}
-void k2c_softmax_func(float * x, const size_t size) {
-
-    float xmax = x[0];
-    float sum = 0;
-    for (size_t i11=0; i11 < size; ++i11) {
-        if (x[i11]>xmax) {
-            xmax = x[i11];
-        }
-    }
-
-    for (size_t i22=0; i22 < size; ++i22) {
-        x[i22] = expf(x[i22]-xmax);
-    }
-
-    for (size_t i33=0; i33 < size; ++i33) {
-        sum += x[i33];
-    }
-
-    sum = 1.0f/sum;
-    for (size_t i44=0; i44 < size; ++i44) {
-        x[i44] = x[i44]*sum;
-    }
-}
-
-void k2c_conv2d(k2c_tensor* output, const k2c_tensor* input, const k2c_tensor* kernel,
-                const k2c_tensor* bias, const size_t * stride, const size_t * dilation
-                ) {
-
-	for (size_t i = 0; i < output->numel; ++i) {
-	        output->array[i] = 0;
-	    }
-
-    const size_t out_rows = output->shape[0];
-    const size_t out_cols = output->shape[1];
-    const size_t out_channels = output->shape[2];
-    const size_t in_channels = input->shape[2];
-
-    for (size_t x0=0; x0 < out_rows; ++x0) {
-        for (size_t x1=0; x1 < out_cols; ++x1) {
-            for (size_t z0=0; z0 < kernel->shape[0]; ++z0) {
-                for (size_t z1=0; z1 < kernel->shape[1]; ++z1) {
-                    for (size_t q=0; q < in_channels; ++q) {
-                        for (size_t k=0; k < out_channels; ++k) {
-                            output->array[x0*(output->shape[2]*output->shape[1])
-                                          + x1*(output->shape[2]) + k] +=
-                                              kernel->array[z0*(kernel->shape[3]*kernel->shape[2]*kernel->shape[1])
-                                                            + z1*(kernel->shape[3]*kernel->shape[2])
-                                                            + q*(kernel->shape[3]) + k]*
-                                              input->array[(x0*stride[0]
-                                                            + dilation[0]*z0)*(input->shape[2]*input->shape[1])
-                                                           + (x1*stride[1] + dilation[1]*z1)*(input->shape[2]) + q];
-                        }
-                    }
-                }
-            }
-        }
-    }
-    k2c_bias_add(output,bias);
-    k2c_relu_func(output->array,output->numel);
-}
-
-void k2c_maxpool2d(k2c_tensor* output, const k2c_tensor* input, const size_t * pool_size,
-                   const size_t * stride) {
-
-
-    const size_t channels = input->shape[2];
-    // i,j,l output indices
-    /// i, k, m input indices
-    for (size_t i=0; i< channels; ++i) {
-        for (size_t j=0, k=0; j<output->shape[1]*channels;
-                j+=channels, k+=channels*stride[1]) {
-            for (size_t l=0, m=0; l<output->numel; l+=channels*output->shape[1],
-                    m+=channels*input->shape[1]*stride[0]) {
-                output->array[l+j+i] = input->array[m+k+i];
-                for (size_t n=0; n<pool_size[1]*channels; n+=channels) {
-                    for (size_t p=0; p<pool_size[0]*channels*input->shape[1];
-                            p+=channels*input->shape[1]) {
-                        if (output->array[l+j+i] < input->array[m+k+i+n+p]) {
-                            output->array[l+j+i] = input->array[m+k+i+n+p];
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-void k2c_flatten(k2c_tensor *output, const k2c_tensor* input) {
-
-  //  memcpy(output->array, input->array, input->numel*sizeof(input->array[0]));
-	  for (size_t i10 = 0; i10 < input->numel; ++i10) {
-	        output->array[i10] = input->array[i10];
-	    }
-
-    for (size_t i=0; i<input->ndim; ++i) {
-        output->shape[i] = 1;
-    }
-    output->shape[0] = input->numel;
-    output->numel = input->numel;
-    output->ndim = 1;
-}
-
-void k2c_dense(k2c_tensor* output, const k2c_tensor* input, const k2c_tensor* kernel,
-               const k2c_tensor* bias, float * fwork) {
-
-    if (input->ndim <=2) {
-        size_t outrows;
-
-        if (input->ndim>1) {
-            outrows = input->shape[0];
-        }
-        else {
-            outrows = 1;
-        }
-        const size_t outcols = kernel->shape[1];
-        const size_t innerdim = kernel->shape[0];
-        const size_t outsize = outrows*outcols;
-        k2c_affine_matmul(output->array,input->array,kernel->array,bias->array,
-                          outrows,outcols,innerdim);
-        k2c_softmax_func(output->array, output->numel);
-    }
-    else {
-        const size_t axesA[1] = {input->ndim-1};
-        const size_t axesB[1] = {0};
-        const size_t naxess = 1;
-        const int normalize = 0;
-
-        k2c_dot(output, input, kernel, axesA, axesB, naxess, normalize, fwork);
-        k2c_bias_add(output, bias);
-        k2c_softmax_func(output->array, output->numel);
-    }
-}
-
-void k2c_affine_matmul(float *C, const float *A, const float *B, const float *d,
-                       const size_t outrows, const size_t outcols, const size_t innerdim) {
-    // Manually zero the output array
-    for (size_t i = 0; i < outrows * outcols; ++i) {
-        C[i] = 0.0f;
-    }
-
-    // Matrix multiplication with bias addition
-    for (size_t i22 = 0; i22 < outrows; ++i22) {
-        for (size_t j22 = 0; j22 < outcols; ++j22) {
-            float sum = 0.0f;
-            for (size_t k = 0; k < innerdim; ++k) {
-                sum += A[i22 * innerdim + k] * B[k * outcols + j22];
-            }
-            C[i22 * outcols + j22] = sum + d[j22];
-        }
-    }
-}
-
-
-void k2c_dot(k2c_tensor* C, const k2c_tensor* A, const k2c_tensor* B, const size_t * axesA,
-             const size_t * axesB, const size_t naxes, const int normalize, float * fwork) {
-
-    size_t permA[K2C_MAX_NDIM];
-    size_t permB[K2C_MAX_NDIM];
-    size_t prod_axesA = 1;
-    size_t prod_axesB = 1;
-    size_t free_axesA, free_axesB;
-    size_t freeA[K2C_MAX_NDIM];
-    size_t freeB[K2C_MAX_NDIM];
-    size_t count;
-    int isin;
-    size_t newshpA[K2C_MAX_NDIM];
-    size_t newshpB[K2C_MAX_NDIM];
-    const size_t ndimA = A->ndim;
-    const size_t ndimB = B->ndim;
-    float *reshapeA = &fwork[0];   // temp working storage
-    float *reshapeB = &fwork[A->numel];
-    size_t Asub[K2C_MAX_NDIM];
-    size_t Bsub[K2C_MAX_NDIM];
-    // find which axes are free (ie, not being summed over)
-    count=0;
-    for (size_t i=0; i<ndimA; ++i) {
-        isin = 0;
-        for (size_t j=0; j<naxes; ++j) {
-            if (i==axesA[j]) {
-                isin=1;
-            }
-        }
-        if (!isin) {
-            freeA[count] = i;
-            ++count;
-        }
-    }
-    count=0;
-    for (size_t i1=0; i1<ndimB; ++i1) {
-        isin = 0;
-        for (size_t j1=0; j1<naxes; ++j1) {
-            if (i1==axesB[j1]) {
-                isin=1;
-            }
-        }
-        if (!isin) {
-            freeB[count] = i1;
-            ++count;
-        }
-    }
-
-    // number of elements in inner dimension
-    for (size_t i2=0; i2 < naxes; ++i2) {
-        prod_axesA *= A->shape[axesA[i2]];
-    }
-    for (size_t i3=0; i3 < naxes; ++i3) {
-        prod_axesB *= B->shape[axesB[i3]];
-    }
-    // number of elements in free dimension
-    free_axesA = A->numel/prod_axesA;
-    free_axesB = B->numel/prod_axesB;
-    // find permutation of axes to get into matmul shape
-    for (size_t i4=0; i4<ndimA-naxes; ++i4) {
-        permA[i4] = freeA[i4];
-    }
-    for (size_t i5=ndimA-naxes, j5=0; i5<ndimA; ++i5, ++j5) {
-        permA[i5] = axesA[j5];
-    }
-    for (size_t i6=0; i6<naxes; ++i6) {
-        permB[i6] = axesB[i6];
-    }
-    for (size_t i7=naxes, j6=0; i7<ndimB; ++i7, ++j6) {
-        permB[i7] = freeB[j6];
-    }
-
-
-
-    for (size_t i8=0; i8<ndimA; ++i8) {
-        newshpA[i8] = A->shape[permA[i8]];
-    }
-    for (size_t i9=0; i9<ndimB; ++i9) {
-        newshpB[i9] = B->shape[permB[i9]];
-    }
-
-    // reshape arrays
-    for (size_t i10=0; i10<A->numel; ++i10) {
-        k2c_idx2sub(i,Asub,A->shape,ndimA);
-        for (size_t j7=0; j7<ndimA; ++j7) {
-            Bsub[j7] = Asub[permA[j7]];
-        }
-        size_t bidx = k2c_sub2idx(Bsub,newshpA,ndimA);
-        reshapeA[bidx] = A->array[i];
-    }
-
-    for (size_t i11=0; i11<B->numel; ++i11) {
-        k2c_idx2sub(i11,Bsub,B->shape,ndimB);
-        for (size_t j8=0; j8<ndimB; ++j8) {
-            Asub[j8] = Bsub[permB[j8]];
-        }
-        size_t bidx = k2c_sub2idx(Asub,newshpB,ndimB);
-        reshapeB[bidx] = B->array[i11];
-    }
-
-
-    if (normalize) {
-
-        float sum;
-        float inorm;
-        for (size_t i12=0; i12<free_axesA; ++i12) {
-            sum = 0;
-            for (size_t j9=0; j9<prod_axesA; ++j9) {
-                sum += reshapeA[i12*prod_axesA + j9]*reshapeA[i12*prod_axesA + j9];
-            }
-            inorm = 1.0f/sqrtf(sum);
-            for (size_t j10=0; j10<prod_axesA; ++j10) {
-                reshapeA[i10*prod_axesA + j10] *= inorm;
-            }
-        }
-        for (size_t i13=0; i13<free_axesB; ++i13) {
-            sum = 0;
-            for (size_t j11=0; j11<prod_axesB; ++j11) {
-                sum += reshapeB[i13 + free_axesB*j11]*reshapeB[i13 + free_axesB*j11];
-            }
-            inorm = 1.0f/sqrtf(sum);
-            for (size_t j12=0; j12<prod_axesB; ++j12) {
-                reshapeB[i13 + free_axesB*j12] *= inorm;
-            }
-        }
-    }
-
-    k2c_matmul(C->array, reshapeA, reshapeB, free_axesA,
-               free_axesB, prod_axesA);
-}
-
-void k2c_bias_add(k2c_tensor* A, const k2c_tensor* b) {
-
-    for (size_t i=0; i<A->numel; i+=b->numel) {
-        for (size_t j=0; j<b->numel; ++j) {
-            A->array[i+j] += b->array[j];
-        }
-    }
-}
-
-void k2c_idx2sub(const size_t idx, size_t * sub, const size_t * shape, const size_t ndim) {
-
-    size_t idx2 = idx;
-    for (int i=ndim-1; i>=0; --i) {
-        sub[i] = idx2%shape[i];
-        idx2 /= shape[i];
-    }
-}
-
-size_t k2c_sub2idx(const size_t * sub, const size_t * shape, const size_t ndim) {
-
-    size_t idx = 0;
-    size_t temp = 0;
-    for (size_t i=0; i<ndim; ++i) {
-        temp = sub[i];
-        for (size_t j=ndim-1; j>i; --j) {
-            temp *= shape[j];
-        }
-        idx += temp;
-    }
-    return idx;
-}
-
-void k2c_matmul(float * C, const float * A, const float * B, const size_t outrows,
-                const size_t outcols, const size_t innerdim) {
-
-    // make sure output is empty
-    //memset(C, 0, outrows*outcols*sizeof(C[0]));
-    for (size_t i = 0; i < outrows * outcols; ++i) {
-    C[i] = 0;
-    }
-
-    for (size_t i1 = 0 ; i1 < outrows; ++i1) {
-        const size_t outrowidx = i1*outcols;
-        const size_t inneridx = i1*innerdim;
-        for (size_t k = 0; k < innerdim; ++k) {
-            for (size_t j = 0;  j < outcols; ++j) {
-                C[outrowidx+j] += A[inneridx+k] * B[k*outcols+j];
-            }
-        }
-    }
-}
 
 
 void MOD2(k2c_tensor* input_1_input, k2c_tensor* dense_output) {
@@ -7536,11 +7195,354 @@ k2c_dense(dense_output,&dropout_output,&dense_kernel,
 
  } 
 
-void ex2_initialize() {
+void MOD2_initialize() {
 
 } 
 
-void ex2_terminate() {
+void MOD2_terminate() {
 
 } 
+void k2c_relu_func(float * x, const size_t size) {
+
+    for (size_t i=0; i < size; ++i) {
+        if (x[i] <= 0.0f) {
+            x[i] = 0.0f;
+        }
+    }
+}
+void k2c_softmax_func(float * x, const size_t size) {
+
+    float xmax = x[0];
+    float sum = 0;
+    for (size_t i11=0; i11 < size; ++i11) {
+        if (x[i11]>xmax) {
+            xmax = x[i11];
+        }
+    }
+
+    for (size_t i22=0; i22 < size; ++i22) {
+        x[i22] = expf(x[i22]-xmax);
+    }
+
+    for (size_t i33=0; i33 < size; ++i33) {
+        sum += x[i33];
+    }
+
+    sum = 1.0f/sum;
+    for (size_t i44=0; i44 < size; ++i44) {
+        x[i44] = x[i44]*sum;
+    }
+}
+
+void k2c_conv2d(k2c_tensor* output, const k2c_tensor* input, const k2c_tensor* kernel,
+                const k2c_tensor* bias, const size_t * stride, const size_t * dilation
+                ) {
+
+	for (size_t i = 0; i < output->numel; ++i) {
+	        output->array[i] = 0;
+	    }
+
+    const size_t out_rows = output->shape[0];
+    const size_t out_cols = output->shape[1];
+    const size_t out_channels = output->shape[2];
+    const size_t in_channels = input->shape[2];
+
+    for (size_t x0=0; x0 < out_rows; ++x0) {
+        for (size_t x1=0; x1 < out_cols; ++x1) {
+            for (size_t z0=0; z0 < kernel->shape[0]; ++z0) {
+                for (size_t z1=0; z1 < kernel->shape[1]; ++z1) {
+                    for (size_t q=0; q < in_channels; ++q) {
+                        for (size_t k=0; k < out_channels; ++k) {
+                            output->array[x0*(output->shape[2]*output->shape[1])
+                                          + x1*(output->shape[2]) + k] +=
+                                              kernel->array[z0*(kernel->shape[3]*kernel->shape[2]*kernel->shape[1])
+                                                            + z1*(kernel->shape[3]*kernel->shape[2])
+                                                            + q*(kernel->shape[3]) + k]*
+                                              input->array[(x0*stride[0]
+                                                            + dilation[0]*z0)*(input->shape[2]*input->shape[1])
+                                                           + (x1*stride[1] + dilation[1]*z1)*(input->shape[2]) + q];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    k2c_bias_add(output,bias);
+    k2c_relu_func(output->array,output->numel);
+}
+
+void k2c_maxpool2d(k2c_tensor* output, const k2c_tensor* input, const size_t * pool_size,
+                   const size_t * stride) {
+
+
+    const size_t channels = input->shape[2];
+    // i,j,l output indices
+    /// i, k, m input indices
+    for (size_t i=0; i< channels; ++i) {
+        for (size_t j=0, k=0; j<output->shape[1]*channels;
+                j+=channels, k+=channels*stride[1]) {
+            for (size_t l=0, m=0; l<output->numel; l+=channels*output->shape[1],
+                    m+=channels*input->shape[1]*stride[0]) {
+                output->array[l+j+i] = input->array[m+k+i];
+                for (size_t n=0; n<pool_size[1]*channels; n+=channels) {
+                    for (size_t p=0; p<pool_size[0]*channels*input->shape[1];
+                            p+=channels*input->shape[1]) {
+                        if (output->array[l+j+i] < input->array[m+k+i+n+p]) {
+                            output->array[l+j+i] = input->array[m+k+i+n+p];
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void k2c_flatten(k2c_tensor *output, const k2c_tensor* input) {
+
+  //  memcpy(output->array, input->array, input->numel*sizeof(input->array[0]));
+	  for (size_t i10 = 0; i10 < input->numel; ++i10) {
+	        output->array[i10] = input->array[i10];
+	    }
+
+    for (size_t i=0; i<input->ndim; ++i) {
+        output->shape[i] = 1;
+    }
+    output->shape[0] = input->numel;
+    output->numel = input->numel;
+    output->ndim = 1;
+}
+
+void k2c_dense(k2c_tensor* output, const k2c_tensor* input, const k2c_tensor* kernel,
+               const k2c_tensor* bias, float * fwork) {
+
+    if (input->ndim <=2) {
+        size_t outrows;
+
+        if (input->ndim>1) {
+            outrows = input->shape[0];
+        }
+        else {
+            outrows = 1;
+        }
+        const size_t outcols = kernel->shape[1];
+        const size_t innerdim = kernel->shape[0];
+        const size_t outsize = outrows*outcols;
+        k2c_affine_matmul(output->array,input->array,kernel->array,bias->array,
+                          outrows,outcols,innerdim);
+        k2c_softmax_func(output->array, output->numel);
+    }
+    else {
+        const size_t axesA[1] = {input->ndim-1};
+        const size_t axesB[1] = {0};
+        const size_t naxess = 1;
+        const int normalize = 0;
+
+        k2c_dot(output, input, kernel, axesA, axesB, naxess, normalize, fwork);
+        k2c_bias_add(output, bias);
+        k2c_softmax_func(output->array, output->numel);
+    }
+}
+
+void k2c_affine_matmul(float *C, const float *A, const float *B, const float *d,
+                       const size_t outrows, const size_t outcols, const size_t innerdim) {
+    // Manually zero the output array
+    for (size_t i = 0; i < outrows * outcols; ++i) {
+        C[i] = 0.0f;
+    }
+
+    // Matrix multiplication with bias addition
+    for (size_t i22 = 0; i22 < outrows; ++i22) {
+        for (size_t j22 = 0; j22 < outcols; ++j22) {
+            float sum = 0.0f;
+            for (size_t k = 0; k < innerdim; ++k) {
+                sum += A[i22 * innerdim + k] * B[k * outcols + j22];
+            }
+            C[i22 * outcols + j22] = sum + d[j22];
+        }
+    }
+}
+
+
+void k2c_dot(k2c_tensor* C, const k2c_tensor* A, const k2c_tensor* B, const size_t * axesA,
+             const size_t * axesB, const size_t naxes, const int normalize, float * fwork) {
+
+    size_t permA[K2C_MAX_NDIM];
+    size_t permB[K2C_MAX_NDIM];
+    size_t prod_axesA = 1;
+    size_t prod_axesB = 1;
+    size_t free_axesA, free_axesB;
+    size_t freeA[K2C_MAX_NDIM];
+    size_t freeB[K2C_MAX_NDIM];
+    size_t count;
+    int isin;
+    size_t newshpA[K2C_MAX_NDIM];
+    size_t newshpB[K2C_MAX_NDIM];
+    const size_t ndimA = A->ndim;
+    const size_t ndimB = B->ndim;
+    float *reshapeA = &fwork[0];   // temp working storage
+    float *reshapeB = &fwork[A->numel];
+    size_t Asub[K2C_MAX_NDIM];
+    size_t Bsub[K2C_MAX_NDIM];
+    // find which axes are free (ie, not being summed over)
+    count=0;
+    for (size_t i=0; i<ndimA; ++i) {
+        isin = 0;
+        for (size_t j=0; j<naxes; ++j) {
+            if (i==axesA[j]) {
+                isin=1;
+            }
+        }
+        if (!isin) {
+            freeA[count] = i;
+            ++count;
+        }
+    }
+    count=0;
+    for (size_t i1=0; i1<ndimB; ++i1) {
+        isin = 0;
+        for (size_t j1=0; j1<naxes; ++j1) {
+            if (i1==axesB[j1]) {
+                isin=1;
+            }
+        }
+        if (!isin) {
+            freeB[count] = i1;
+            ++count;
+        }
+    }
+
+    // number of elements in inner dimension
+    for (size_t i2=0; i2 < naxes; ++i2) {
+        prod_axesA *= A->shape[axesA[i2]];
+    }
+    for (size_t i3=0; i3 < naxes; ++i3) {
+        prod_axesB *= B->shape[axesB[i3]];
+    }
+    // number of elements in free dimension
+    free_axesA = A->numel/prod_axesA;
+    free_axesB = B->numel/prod_axesB;
+    // find permutation of axes to get into matmul shape
+    for (size_t i4=0; i4<ndimA-naxes; ++i4) {
+        permA[i4] = freeA[i4];
+    }
+    for (size_t i5=ndimA-naxes, j5=0; i5<ndimA; ++i5, ++j5) {
+        permA[i5] = axesA[j5];
+    }
+    for (size_t i6=0; i6<naxes; ++i6) {
+        permB[i6] = axesB[i6];
+    }
+    for (size_t i7=naxes, j6=0; i7<ndimB; ++i7, ++j6) {
+        permB[i7] = freeB[j6];
+    }
+
+
+
+    for (size_t i8=0; i8<ndimA; ++i8) {
+        newshpA[i8] = A->shape[permA[i8]];
+    }
+    for (size_t i9=0; i9<ndimB; ++i9) {
+        newshpB[i9] = B->shape[permB[i9]];
+    }
+
+    // reshape arrays
+    for (size_t i10=0; i10<A->numel; ++i10) {
+        k2c_idx2sub(i,Asub,A->shape,ndimA);
+        for (size_t j7=0; j7<ndimA; ++j7) {
+            Bsub[j7] = Asub[permA[j7]];
+        }
+        size_t bidx = k2c_sub2idx(Bsub,newshpA,ndimA);
+        reshapeA[bidx] = A->array[i];
+    }
+
+    for (size_t i11=0; i11<B->numel; ++i11) {
+        k2c_idx2sub(i11,Bsub,B->shape,ndimB);
+        for (size_t j8=0; j8<ndimB; ++j8) {
+            Asub[j8] = Bsub[permB[j8]];
+        }
+        size_t bidx = k2c_sub2idx(Asub,newshpB,ndimB);
+        reshapeB[bidx] = B->array[i11];
+    }
+
+
+    if (normalize) {
+
+        float sum;
+        float inorm;
+        for (size_t i12=0; i12<free_axesA; ++i12) {
+            sum = 0;
+            for (size_t j9=0; j9<prod_axesA; ++j9) {
+                sum += reshapeA[i12*prod_axesA + j9]*reshapeA[i12*prod_axesA + j9];
+            }
+            inorm = 1.0f/sqrtf(sum);
+            for (size_t j10=0; j10<prod_axesA; ++j10) {
+                reshapeA[i10*prod_axesA + j10] *= inorm;
+            }
+        }
+        for (size_t i13=0; i13<free_axesB; ++i13) {
+            sum = 0;
+            for (size_t j11=0; j11<prod_axesB; ++j11) {
+                sum += reshapeB[i13 + free_axesB*j11]*reshapeB[i13 + free_axesB*j11];
+            }
+            inorm = 1.0f/sqrtf(sum);
+            for (size_t j12=0; j12<prod_axesB; ++j12) {
+                reshapeB[i13 + free_axesB*j12] *= inorm;
+            }
+        }
+    }
+
+    k2c_matmul(C->array, reshapeA, reshapeB, free_axesA,
+               free_axesB, prod_axesA);
+}
+
+void k2c_bias_add(k2c_tensor* A, const k2c_tensor* b) {
+
+    for (size_t i=0; i<A->numel; i+=b->numel) {
+        for (size_t j=0; j<b->numel; ++j) {
+            A->array[i+j] += b->array[j];
+        }
+    }
+}
+
+void k2c_idx2sub(const size_t idx, size_t * sub, const size_t * shape, const size_t ndim) {
+
+    size_t idx2 = idx;
+    for (int i=ndim-1; i>=0; --i) {
+        sub[i] = idx2%shape[i];
+        idx2 /= shape[i];
+    }
+}
+
+size_t k2c_sub2idx(const size_t * sub, const size_t * shape, const size_t ndim) {
+
+    size_t idx = 0;
+    size_t temp = 0;
+    for (size_t i=0; i<ndim; ++i) {
+        temp = sub[i];
+        for (size_t j=ndim-1; j>i; --j) {
+            temp *= shape[j];
+        }
+        idx += temp;
+    }
+    return idx;
+}
+
+void k2c_matmul(float * C, const float * A, const float * B, const size_t outrows,
+                const size_t outcols, const size_t innerdim) {
+
+    // make sure output is empty
+    //memset(C, 0, outrows*outcols*sizeof(C[0]));
+    for (size_t i = 0; i < outrows * outcols; ++i) {
+    C[i] = 0;
+    }
+
+    for (size_t i1 = 0 ; i1 < outrows; ++i1) {
+        const size_t outrowidx = i1*outcols;
+        const size_t inneridx = i1*innerdim;
+        for (size_t k = 0; k < innerdim; ++k) {
+            for (size_t j = 0;  j < outcols; ++j) {
+                C[outrowidx+j] += A[inneridx+k] * B[k*outcols+j];
+            }
+        }
+    }
+}
 
