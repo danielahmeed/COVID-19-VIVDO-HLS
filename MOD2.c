@@ -17,6 +17,7 @@
  k2c_tensor dense_bias ;
 
 
+
 void MOD2(k2c_tensor* input_1_input, k2c_tensor* dense_output) {
 
 size_t conv2d_stride[2] = {1,1}; 
@@ -27,6 +28,7 @@ float conv2d_output_array[21632] = {0};
 //k2c_tensor conv2d_output;
 // Copy the contents of conv2d_output_array into conv2d_output.array
 for (size_t i = 0; i < 21632; ++i) {
+#pragma HLS loop_tripcount min= 21632 max= 21632
     conv2d_output.array[i] = conv2d_output_array[i];
 }
 
@@ -102,6 +104,7 @@ float conv2d_kernel_array[288] = {
 /*Initiated and manually assigned elements values*/
 // k2c_tensor conv2d_kernel = {0};
  for (size_t f = 0; f < 288; ++f) {
+#pragma HLS loop_tripcount min=288 max=288
      conv2d_kernel.array[f] = conv2d_kernel_array[f];
  }
  conv2d_kernel.ndim = 4;
@@ -123,6 +126,7 @@ float conv2d_bias_array[32] = {
 //k2c_tensor conv2d_bias = {conv2d_bias_array[0],1,32,{32, 1, 1, 1, 1}};
 //k2c_tensor conv2d_bias = {0};
    for (size_t c = 0; c < 32; ++c) {
+#pragma HLS loop_tripcount min=32 max=32
        conv2d_bias.array[c] = conv2d_bias_array[c];
    }
    conv2d_bias.ndim = 1;
@@ -139,6 +143,7 @@ float max_pooling2d_output_array[5408] = {0};
 //k2c_tensor max_pooling2d_output = {max_pooling2d_output_array[0],3,5408,{13,13,32, 1, 1}};
 //k2c_tensor max_pooling2d_output;
 for (size_t d = 0; d < 5408; ++d) {
+#pragma HLS loop_tripcount min=5408 max=5408
     max_pooling2d_output.array[d] = max_pooling2d_output_array[d];
 }
 max_pooling2d_output.ndim = 3;
@@ -152,10 +157,11 @@ max_pooling2d_output.shape[4] = 1;
 
 size_t conv2d_1_stride[2] = {1,1}; 
 size_t conv2d_1_dilation[2] = {1,1}; 
-float conv2d_1_output_array[7744] = {0}; 
+float conv2d_1_output_array[7744] = {0};
 //k2c_tensor conv2d_1_output = {conv2d_1_output_array[0],3,7744,{11,11,64, 1, 1}};
 //2c_tensor conv2d_1_output ;
 for (size_t e = 0; e < 7744; ++e) {
+#pragma HLS loop_tripcount min=7744 max=7744
     conv2d_1_output.array[e] = conv2d_1_output_array[e];
 }
 conv2d_1_output.ndim = 3;
@@ -3856,6 +3862,7 @@ float conv2d_1_kernel_array[18432] = {
 //k2c_tensor conv2d_1_kernel = {conv2d_1_kernel_array[0],4,18432,{ 3, 3,32,64, 1}};
 //k2c_tensor conv2d_1_kernel  ;
 for (size_t f1 = 0; f1 < 18432; ++f1) {
+#pragma HLS loop_tripcount min = 18432 max =18432
     conv2d_1_kernel.array[f1] = conv2d_1_kernel_array[f1];
 }
 conv2d_1_kernel.ndim = 4;
@@ -3883,6 +3890,7 @@ float conv2d_1_bias_array[64] = {
 //k2c_tensor conv2d_1_bias = {conv2d_1_bias_array[0],1,64,{64, 1, 1, 1, 1}};
 //k2c_tensor conv2d_1_bias ;
 for (size_t g = 0; g < 64; ++g) {
+#pragma HLS loop_tripcount min = 64 max =64
     conv2d_1_bias.array[g] = conv2d_1_bias_array[g];
 }
 conv2d_1_bias.ndim = 1;
@@ -3893,12 +3901,13 @@ conv2d_1_bias.shape[2] = 1;
 conv2d_1_bias.shape[3] = 1;
 conv2d_1_bias.shape[4] = 1;
  
-size_t max_pooling2d_1_stride[2] = {2,2}; 
+size_t max_pooling2d_1_stride[2] = {2,2};
 size_t max_pooling2d_1_pool_size[2] = {2,2}; 
 float max_pooling2d_1_output_array[1600] = {0}; 
 //k2c_tensor max_pooling2d_1_output = {max_pooling2d_1_output_array[0],3,1600,{ 5, 5,64, 1, 1}};
 //k2c_tensor max_pooling2d_1_output ;
-for (size_t h = 0; h < 1600; ++h) {
+for (size_t h = 0; h < 1600; ++h){
+#pragma HLS loop_tripcount min = 1600 max =1600
     max_pooling2d_1_output.array[h] = max_pooling2d_1_output_array[h];
 }
 max_pooling2d_1_output.ndim = 3;
@@ -3913,7 +3922,8 @@ max_pooling2d_1_output.shape[4] = 1;
 float flatten_output_array[1600] = {0}; 
 //k2c_tensor flatten_output = {flatten_output_array[0],1,1600,{1600,   1,   1,   1,   1}};
 //k2c_tensor flatten_output ;
-for (size_t h1 = 0; h1 < 1600; ++h1) {
+for (size_t h1 = 0; h1 < 1600; ++h1){
+#pragma HLS loop_tripcount min = 1600 max =1600
     flatten_output.array[h1] = flatten_output_array[h1];
 }
 flatten_output.ndim = 1;
@@ -7128,7 +7138,8 @@ float dense_kernel_array[16000] = {
 //k2c_tensor dense_kernel = {dense_kernel_array[0],2,16000,{1600,  10,   1,   1,   1}};
 //k2c_tensor dense_kernel = {0};
     for (size_t b1 = 0; b1 < 16000; ++b1) {
-      #pragma HLS PIPELINE
+      //#pragma HLS PIPELINE
+#pragma HLS loop_tripcount min=16000 max=16000
         dense_kernel.array[b1] = dense_kernel_array[b1];
     }
     dense_kernel.ndim = 2;
@@ -7145,6 +7156,7 @@ float dense_bias_array[10] = {
 //k2c_tensor dense_bias = {dense_bias_array[0],1,10,{10, 1, 1, 1, 1}};
 //k2c_tensor dense_bias = {0};
 for (size_t k = 0; k < 10; ++k) {
+#pragma HLS loop_tripcount min=10 max=10
     dense_bias.array[k] = dense_bias_array[k];
 }
 dense_bias.ndim = 1;
@@ -7172,6 +7184,7 @@ dropout_output.ndim = flatten_output.ndim; // copy data into output struct
 dropout_output.numel = flatten_output.numel; 
 //memcpy(dropout_output.shape,flatten_output.shape,K2C_MAX_NDIM*sizeof(size_t));
 for (size_t m = 0; m < K2C_MAX_NDIM; ++m) {
+#pragma HLS loop_tripcount min=5 max=5
      dropout_output.shape[m] = flatten_output.shape[m];
 }
 
@@ -7188,6 +7201,7 @@ dropout_output.shape[4] = flatten_output.shape[4];
 // Copy the contents of flatten_output.array into dropout_output.array
 for (size_t i1 = 0; i1 < flatten_output.numel; ++i1)
 {
+#pragma HLS loop_tripcount min=1600 max=1600
     dropout_output.array[i1] = flatten_output.array[i1];
 }
 k2c_dense(dense_output,&dropout_output,&dense_kernel, 
@@ -7205,6 +7219,7 @@ void MOD2_terminate() {
 void k2c_relu_func(float * x, const size_t size) {
 
     for (size_t i=0; i < size; ++i) {
+#pragma HLS loop_tripcount min=21632 max=21632
         if (x[i] <= 0.0f) {
             x[i] = 0.0f;
         }
@@ -7215,21 +7230,25 @@ void k2c_softmax_func(float * x, const size_t size) {
     float xmax = x[0];
     float sum = 0;
     for (size_t i11=0; i11 < size; ++i11) {
+#pragma HLS LOOP_TRIPCOUNT min=1 max=10
         if (x[i11]>xmax) {
             xmax = x[i11];
         }
     }
 
     for (size_t i22=0; i22 < size; ++i22) {
+#pragma HLS LOOP_TRIPCOUNT min=1 max=10
         x[i22] = expf(x[i22]-xmax);
     }
 
     for (size_t i33=0; i33 < size; ++i33) {
+#pragma HLS LOOP_TRIPCOUNT min=1 max=10
         sum += x[i33];
     }
 
     sum = 1.0f/sum;
     for (size_t i44=0; i44 < size; ++i44) {
+//#pragma HLS LOOP_TRIPCOUNT min=1 max=10
         x[i44] = x[i44]*sum;
     }
 }
@@ -7239,6 +7258,8 @@ void k2c_conv2d(k2c_tensor* output, const k2c_tensor* input, const k2c_tensor* k
                 ) {
 
 	for (size_t i = 0; i < output->numel; ++i) {
+#pragma HLS loop_tripcount min=21632 max=21632
+
 	        output->array[i] = 0;
 	    }
 
@@ -7248,11 +7269,17 @@ void k2c_conv2d(k2c_tensor* output, const k2c_tensor* input, const k2c_tensor* k
     const size_t in_channels = input->shape[2];
 
     for (size_t x0=0; x0 < out_rows; ++x0) {
+#pragma HLS loop_tripcount min=11 max=26
         for (size_t x1=0; x1 < out_cols; ++x1) {
+#pragma HLS loop_tripcount min=11 max=26
             for (size_t z0=0; z0 < kernel->shape[0]; ++z0) {
+#pragma HLS loop_tripcount min=3 max=3
                 for (size_t z1=0; z1 < kernel->shape[1]; ++z1) {
+#pragma HLS loop_tripcount min=3 max=3
                     for (size_t q=0; q < in_channels; ++q) {
+#pragma HLS loop_tripcount min=1 max=1
                         for (size_t k=0; k < out_channels; ++k) {
+#pragma HLS loop_tripcount min=34 max=64
                             output->array[x0*(output->shape[2]*output->shape[1])
                                           + x1*(output->shape[2]) + k] +=
                                               kernel->array[z0*(kernel->shape[3]*kernel->shape[2]*kernel->shape[1])
@@ -7279,14 +7306,19 @@ void k2c_maxpool2d(k2c_tensor* output, const k2c_tensor* input, const size_t * p
     // i,j,l output indices
     /// i, k, m input indices
     for (size_t i=0; i< channels; ++i) {
+#pragma HLS loop_tripcount min=32 max=64
         for (size_t j=0, k=0; j<output->shape[1]*channels;
                 j+=channels, k+=channels*stride[1]) {
+#pragma HLS loop_tripcount min=65 max=732
             for (size_t l=0, m=0; l<output->numel; l+=channels*output->shape[1],
                     m+=channels*input->shape[1]*stride[0]) {
+#pragma HLS loop_tripcount min=1600 max=5408
                 output->array[l+j+i] = input->array[m+k+i];
                 for (size_t n=0; n<pool_size[1]*channels; n+=channels) {
+#pragma HLS loop_tripcount min=26 max=128
                     for (size_t p=0; p<pool_size[0]*channels*input->shape[1];
                             p+=channels*input->shape[1]) {
+#pragma HLS loop_tripcount min=704 max=3328
                         if (output->array[l+j+i] < input->array[m+k+i+n+p]) {
                             output->array[l+j+i] = input->array[m+k+i+n+p];
                         }
@@ -7301,10 +7333,12 @@ void k2c_flatten(k2c_tensor *output, const k2c_tensor* input) {
 
   //  memcpy(output->array, input->array, input->numel*sizeof(input->array[0]));
 	  for (size_t i10 = 0; i10 < input->numel; ++i10) {
+        #pragma HLS loop_tripcount min=1600 max=1600
 	        output->array[i10] = input->array[i10];
 	    }
 
     for (size_t i=0; i<input->ndim; ++i) {
+     #pragma HLS loop_tripcount min=3 max=3
         output->shape[i] = 1;
     }
     output->shape[0] = input->numel;
@@ -7347,14 +7381,18 @@ void k2c_affine_matmul(float *C, const float *A, const float *B, const float *d,
                        const size_t outrows, const size_t outcols, const size_t innerdim) {
     // Manually zero the output array
     for (size_t i = 0; i < outrows * outcols; ++i) {
+#pragma HLS loop_tripcount min=10 max=10
         C[i] = 0.0f;
     }
 
     // Matrix multiplication with bias addition
     for (size_t i22 = 0; i22 < outrows; ++i22) {
+#pragma HLS loop_tripcount min=1 max=1
         for (size_t j22 = 0; j22 < outcols; ++j22) {
+#pragma HLS loop_tripcount min=3 max=3
             float sum = 0.0f;
             for (size_t k = 0; k < innerdim; ++k) {
+#pragma HLS loop_tripcount min=3 max=3
                 sum += A[i22 * innerdim + k] * B[k * outcols + j22];
             }
             C[i22 * outcols + j22] = sum + d[j22];
@@ -7386,8 +7424,10 @@ void k2c_dot(k2c_tensor* C, const k2c_tensor* A, const k2c_tensor* B, const size
     // find which axes are free (ie, not being summed over)
     count=0;
     for (size_t i=0; i<ndimA; ++i) {
+#pragma HLS loop_tripcount min=1 max=1
         isin = 0;
         for (size_t j=0; j<naxes; ++j) {
+#pragma HLS loop_tripcount min=1 max=1
             if (i==axesA[j]) {
                 isin=1;
             }
@@ -7399,8 +7439,10 @@ void k2c_dot(k2c_tensor* C, const k2c_tensor* A, const k2c_tensor* B, const size
     }
     count=0;
     for (size_t i1=0; i1<ndimB; ++i1) {
+#pragma HLS loop_tripcount min=2  max=2
         isin = 0;
         for (size_t j1=0; j1<naxes; ++j1) {
+#pragma HLS loop_tripcount min=1 max=1
             if (i1==axesB[j1]) {
                 isin=1;
             }
@@ -7413,9 +7455,11 @@ void k2c_dot(k2c_tensor* C, const k2c_tensor* A, const k2c_tensor* B, const size
 
     // number of elements in inner dimension
     for (size_t i2=0; i2 < naxes; ++i2) {
+#pragma HLS loop_tripcount min=1 max=1
         prod_axesA *= A->shape[axesA[i2]];
     }
     for (size_t i3=0; i3 < naxes; ++i3) {
+#pragma HLS loop_tripcount min=1 max=1
         prod_axesB *= B->shape[axesB[i3]];
     }
     // number of elements in free dimension
@@ -7423,31 +7467,39 @@ void k2c_dot(k2c_tensor* C, const k2c_tensor* A, const k2c_tensor* B, const size
     free_axesB = B->numel/prod_axesB;
     // find permutation of axes to get into matmul shape
     for (size_t i4=0; i4<ndimA-naxes; ++i4) {
+#pragma HLS loop_tripcount min=0 max=0
         permA[i4] = freeA[i4];
     }
     for (size_t i5=ndimA-naxes, j5=0; i5<ndimA; ++i5, ++j5) {
+#pragma HLS loop_tripcount min=0 max=0
         permA[i5] = axesA[j5];
     }
     for (size_t i6=0; i6<naxes; ++i6) {
+#pragma HLS loop_tripcount min=1 max=1
         permB[i6] = axesB[i6];
     }
     for (size_t i7=naxes, j6=0; i7<ndimB; ++i7, ++j6) {
+#pragma HLS loop_tripcount min=2 max=2
         permB[i7] = freeB[j6];
     }
 
 
 
     for (size_t i8=0; i8<ndimA; ++i8) {
+#pragma HLS loop_tripcount min=1 max=1
         newshpA[i8] = A->shape[permA[i8]];
     }
     for (size_t i9=0; i9<ndimB; ++i9) {
+#pragma HLS loop_tripcount min=2 max=2
         newshpB[i9] = B->shape[permB[i9]];
     }
 
     // reshape arrays
     for (size_t i10=0; i10<A->numel; ++i10) {
+#pragma HLS loop_tripcount min=1600 max=1600
         k2c_idx2sub(i,Asub,A->shape,ndimA);
         for (size_t j7=0; j7<ndimA; ++j7) {
+#pragma HLS loop_tripcount min=1 max=1
             Bsub[j7] = Asub[permA[j7]];
         }
         size_t bidx = k2c_sub2idx(Bsub,newshpA,ndimA);
@@ -7455,8 +7507,10 @@ void k2c_dot(k2c_tensor* C, const k2c_tensor* A, const k2c_tensor* B, const size
     }
 
     for (size_t i11=0; i11<B->numel; ++i11) {
+#pragma HLS loop_tripcount min=16000 max= 16000
         k2c_idx2sub(i11,Bsub,B->shape,ndimB);
         for (size_t j8=0; j8<ndimB; ++j8) {
+#pragma HLS loop_tripcount min=2 max=2
             Asub[j8] = Bsub[permB[j8]];
         }
         size_t bidx = k2c_sub2idx(Asub,newshpB,ndimB);
@@ -7469,22 +7523,28 @@ void k2c_dot(k2c_tensor* C, const k2c_tensor* A, const k2c_tensor* B, const size
         float sum;
         float inorm;
         for (size_t i12=0; i12<free_axesA; ++i12) {
+#pragma HLS loop_tripcount min=1 max=1
             sum = 0;
             for (size_t j9=0; j9<prod_axesA; ++j9) {
+#pragma HLS loop_tripcount min=1600 max=1600
                 sum += reshapeA[i12*prod_axesA + j9]*reshapeA[i12*prod_axesA + j9];
             }
             inorm = 1.0f/sqrtf(sum);
             for (size_t j10=0; j10<prod_axesA; ++j10) {
+#pragma HLS loop_tripcount min=1600 max=1600
                 reshapeA[i10*prod_axesA + j10] *= inorm;
             }
         }
         for (size_t i13=0; i13<free_axesB; ++i13) {
+#pragma HLS loop_tripcount min=10 max=10
             sum = 0;
             for (size_t j11=0; j11<prod_axesB; ++j11) {
+#pragma HLS loop_tripcount min=1600 max=1600
                 sum += reshapeB[i13 + free_axesB*j11]*reshapeB[i13 + free_axesB*j11];
             }
             inorm = 1.0f/sqrtf(sum);
             for (size_t j12=0; j12<prod_axesB; ++j12) {
+#pragma HLS loop_tripcount min=1600 max=1600
                 reshapeB[i13 + free_axesB*j12] *= inorm;
             }
         }
@@ -7497,7 +7557,9 @@ void k2c_dot(k2c_tensor* C, const k2c_tensor* A, const k2c_tensor* B, const size
 void k2c_bias_add(k2c_tensor* A, const k2c_tensor* b) {
 
     for (size_t i=0; i<A->numel; i+=b->numel) {
+#pragma HLS loop_tripcount min=21632  max=21632
         for (size_t j=0; j<b->numel; ++j) {
+#pragma HLS loop_tripcount min=64 max=64
             A->array[i+j] += b->array[j];
         }
     }
@@ -7507,6 +7569,7 @@ void k2c_idx2sub(const size_t idx, size_t * sub, const size_t * shape, const siz
 
     size_t idx2 = idx;
     for (int i=ndim-1; i>=0; --i) {
+#pragma HLS loop_tripcount min=1 max=1
         sub[i] = idx2%shape[i];
         idx2 /= shape[i];
     }
@@ -7517,8 +7580,10 @@ size_t k2c_sub2idx(const size_t * sub, const size_t * shape, const size_t ndim) 
     size_t idx = 0;
     size_t temp = 0;
     for (size_t i=0; i<ndim; ++i) {
+#pragma HLS loop_tripcount min=1  max=2
         temp = sub[i];
         for (size_t j=ndim-1; j>i; --j) {
+#pragma HLS loop_tripcount min=0 max=1
             temp *= shape[j];
         }
         idx += temp;
@@ -7532,14 +7597,18 @@ void k2c_matmul(float * C, const float * A, const float * B, const size_t outrow
     // make sure output is empty
     //memset(C, 0, outrows*outcols*sizeof(C[0]));
     for (size_t i = 0; i < outrows * outcols; ++i) {
+#pragma HLS loop_tripcount min=30 max=30
     C[i] = 0;
     }
 
     for (size_t i1 = 0 ; i1 < outrows; ++i1) {
+#pragma HLS loop_tripcount min=10 max=10
         const size_t outrowidx = i1*outcols;
         const size_t inneridx = i1*innerdim;
         for (size_t k = 0; k < innerdim; ++k) {
+#pragma HLS loop_tripcount min=3 max=3
             for (size_t j = 0;  j < outcols; ++j) {
+#pragma HLS loop_tripcount min=3 max=3
                 C[outrowidx+j] += A[inneridx+k] * B[k*outcols+j];
             }
         }
