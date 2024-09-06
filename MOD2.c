@@ -20,9 +20,9 @@
 
 void MOD2(k2c_tensor* input_1_input, k2c_tensor* dense_output) {
 
-size_t conv2d_stride[2] = {1,1}; 
-size_t conv2d_dilation[2] = {1,1}; 
-float conv2d_output_array[21632] = {0}; 
+size_t conv2d_stride[2] = {1,1};
+size_t conv2d_dilation[2] = {1,1};
+float conv2d_output_array[21632] = {0};
 //k2c_tensor conv2d_output = {conv2d_output_array[0], 3, 21632, {26, 26, 32, 1, 1}};
 // Initialize the k2c_tensor structure
 //k2c_tensor conv2d_output;
@@ -99,7 +99,7 @@ float conv2d_kernel_array[288] = {
 +2.53752083e-01f,-7.34126419e-02f,+1.72400653e-01f,+1.93046600e-01f,+2.03093648e-01f,
 +1.43635929e-01f,+9.29390490e-02f,+2.77070403e-01f,-4.33754355e-01f,-6.69492409e-02f,
 -3.72226894e-01f,+2.44525209e-01f,-3.30068499e-01f,-1.27965063e-01f,-7.27103427e-02f,
-+1.62631407e-01f,-3.42512280e-01f,+2.73928463e-01f,}; 
++1.62631407e-01f,-3.42512280e-01f,+2.73928463e-01f,};
 //k2c_tensor conv2d_kernel = {conv2d_kernel_array[0],4,288,{ 3, 3, 1,32, 1}};
 /*Initiated and manually assigned elements values*/
 // k2c_tensor conv2d_kernel = {0};
@@ -122,7 +122,7 @@ float conv2d_bias_array[32] = {
 -1.16640441e-02f,-1.13284916e-01f,+1.95290893e-02f,-3.20531875e-02f,-5.99079542e-02f,
 -5.40676266e-02f,-6.41720323e-03f,-4.31903973e-02f,-1.34929940e-01f,-1.03307046e-01f,
 -5.78066669e-02f,-4.27479250e-03f,-1.24647617e-02f,-9.13617313e-02f,-1.08080469e-02f,
--7.35043315e-03f,+4.12242226e-02f,}; 
+-7.35043315e-03f,+4.12242226e-02f,};
 //k2c_tensor conv2d_bias = {conv2d_bias_array[0],1,32,{32, 1, 1, 1, 1}};
 //k2c_tensor conv2d_bias = {0};
    for (size_t c = 0; c < 32; ++c) {
@@ -136,10 +136,10 @@ float conv2d_bias_array[32] = {
    conv2d_bias.shape[2] = 1;
    conv2d_bias.shape[3] = 1;
    conv2d_bias.shape[4] = 1;
- 
-size_t max_pooling2d_stride[2] = {2,2}; 
-size_t max_pooling2d_pool_size[2] = {2,2}; 
-float max_pooling2d_output_array[5408] = {0}; 
+
+size_t max_pooling2d_stride[2] = {2,2};
+size_t max_pooling2d_pool_size[2] = {2,2};
+float max_pooling2d_output_array[5408] = {0};
 //k2c_tensor max_pooling2d_output = {max_pooling2d_output_array[0],3,5408,{13,13,32, 1, 1}};
 //k2c_tensor max_pooling2d_output;
 for (size_t d = 0; d < 5408; ++d) {
@@ -155,8 +155,8 @@ max_pooling2d_output.shape[3] = 1;
 max_pooling2d_output.shape[4] = 1;
 
 
-size_t conv2d_1_stride[2] = {1,1}; 
-size_t conv2d_1_dilation[2] = {1,1}; 
+size_t conv2d_1_stride[2] = {1,1};
+size_t conv2d_1_dilation[2] = {1,1};
 float conv2d_1_output_array[7744] = {0};
 //k2c_tensor conv2d_1_output = {conv2d_1_output_array[0],3,7744,{11,11,64, 1, 1}};
 //2c_tensor conv2d_1_output ;
@@ -3858,7 +3858,7 @@ float conv2d_1_kernel_array[18432] = {
 -8.82841125e-02f,-9.00245756e-02f,-1.99055150e-01f,+4.88547608e-03f,-5.86968437e-02f,
 +6.23345673e-02f,+2.11653084e-01f,-3.58983129e-01f,-1.24962278e-01f,-2.45433420e-01f,
 +4.08228971e-02f,+2.61016302e-02f,+1.03970446e-01f,-1.75749257e-01f,-9.43044052e-02f,
--9.34720039e-02f,-2.93143809e-01f,}; 
+-9.34720039e-02f,-2.93143809e-01f,};
 //k2c_tensor conv2d_1_kernel = {conv2d_1_kernel_array[0],4,18432,{ 3, 3,32,64, 1}};
 //k2c_tensor conv2d_1_kernel  ;
 for (size_t f1 = 0; f1 < 18432; ++f1) {
@@ -3886,7 +3886,7 @@ float conv2d_1_bias_array[64] = {
 -3.76368850e-03f,-1.40361488e-02f,-9.41735357e-02f,+2.04655179e-03f,-1.99884307e-02f,
 -2.81840991e-02f,-9.01624411e-02f,+9.59061668e-04f,-1.25063071e-02f,-1.94270518e-02f,
 -9.35655907e-02f,-1.43187456e-02f,-1.84177067e-02f,-6.34705201e-02f,-1.08047724e-01f,
-+1.57173946e-02f,+2.85118055e-02f,-1.08324997e-01f,-5.46087883e-03f,}; 
++1.57173946e-02f,+2.85118055e-02f,-1.08324997e-01f,-5.46087883e-03f,};
 //k2c_tensor conv2d_1_bias = {conv2d_1_bias_array[0],1,64,{64, 1, 1, 1, 1}};
 //k2c_tensor conv2d_1_bias ;
 for (size_t g = 0; g < 64; ++g) {
@@ -3900,10 +3900,10 @@ conv2d_1_bias.shape[1] = 1;
 conv2d_1_bias.shape[2] = 1;
 conv2d_1_bias.shape[3] = 1;
 conv2d_1_bias.shape[4] = 1;
- 
+
 size_t max_pooling2d_1_stride[2] = {2,2};
-size_t max_pooling2d_1_pool_size[2] = {2,2}; 
-float max_pooling2d_1_output_array[1600] = {0}; 
+size_t max_pooling2d_1_pool_size[2] = {2,2};
+float max_pooling2d_1_output_array[1600] = {0};
 //k2c_tensor max_pooling2d_1_output = {max_pooling2d_1_output_array[0],3,1600,{ 5, 5,64, 1, 1}};
 //k2c_tensor max_pooling2d_1_output ;
 for (size_t h = 0; h < 1600; ++h){
@@ -3919,7 +3919,7 @@ max_pooling2d_1_output.shape[3] = 1;
 max_pooling2d_1_output.shape[4] = 1;
 
 
-float flatten_output_array[1600] = {0}; 
+float flatten_output_array[1600] = {0};
 //k2c_tensor flatten_output = {flatten_output_array[0],1,1600,{1600,   1,   1,   1,   1}};
 //k2c_tensor flatten_output ;
 for (size_t h1 = 0; h1 < 1600; ++h1){
@@ -7134,7 +7134,7 @@ float dense_kernel_array[16000] = {
 -2.68581569e-01f,+7.91410357e-02f,-1.80207312e-01f,+4.79454594e-03f,+4.72770557e-02f,
 +4.52162027e-02f,-1.58652905e-02f,-5.44271581e-02f,-7.51629695e-02f,+3.58801009e-03f,
 +9.22576711e-02f,+1.54889291e-02f,-1.56056330e-01f,+5.55474460e-02f,-6.69076666e-02f,
-}; 
+};
 //k2c_tensor dense_kernel = {dense_kernel_array[0],2,16000,{1600,  10,   1,   1,   1}};
 //k2c_tensor dense_kernel = {0};
     for (size_t b1 = 0; b1 < 16000; ++b1) {
@@ -7152,7 +7152,7 @@ float dense_kernel_array[16000] = {
 float dense_bias_array[10] = {
 +4.19487618e-02f,+2.07437530e-01f,-4.39643785e-02f,-4.06081118e-02f,-6.54411018e-02f,
 -3.25645208e-02f,-1.96458492e-02f,+2.42010932e-02f,-4.38028462e-02f,-5.19778347e-03f,
-}; 
+};
 //k2c_tensor dense_bias = {dense_bias_array[0],1,10,{10, 1, 1, 1, 1}};
 //k2c_tensor dense_bias = {0};
 for (size_t k = 0; k < 10; ++k) {
@@ -7167,21 +7167,21 @@ dense_bias.shape[2] = 1;
 dense_bias.shape[3] = 1;
 dense_bias.shape[4] = 1;
 
-float dense_fwork[17600] = {0}; 
+float dense_fwork[17600] = {0};
 
- 
-k2c_conv2d(&conv2d_output,input_1_input,&conv2d_kernel, 
+
+k2c_conv2d(&conv2d_output,input_1_input,&conv2d_kernel,
 	&conv2d_bias,conv2d_stride,conv2d_dilation);
-k2c_maxpool2d(&max_pooling2d_output,&conv2d_output,max_pooling2d_pool_size, 
-	max_pooling2d_stride); 
-k2c_conv2d(&conv2d_1_output,&max_pooling2d_output,&conv2d_1_kernel, 
+k2c_maxpool2d(&max_pooling2d_output,&conv2d_output,max_pooling2d_pool_size,
+	max_pooling2d_stride);
+k2c_conv2d(&conv2d_1_output,&max_pooling2d_output,&conv2d_1_kernel,
 	&conv2d_1_bias,conv2d_1_stride,conv2d_1_dilation);
-k2c_maxpool2d(&max_pooling2d_1_output,&conv2d_1_output,max_pooling2d_1_pool_size, 
-	max_pooling2d_1_stride); 
-k2c_flatten(&flatten_output,&max_pooling2d_1_output); 
-k2c_tensor dropout_output; 
-dropout_output.ndim = flatten_output.ndim; // copy data into output struct 
-dropout_output.numel = flatten_output.numel; 
+k2c_maxpool2d(&max_pooling2d_1_output,&conv2d_1_output,max_pooling2d_1_pool_size,
+	max_pooling2d_1_stride);
+k2c_flatten(&flatten_output,&max_pooling2d_1_output);
+k2c_tensor dropout_output;
+dropout_output.ndim = flatten_output.ndim; // copy data into output struct
+dropout_output.numel = flatten_output.numel;
 //memcpy(dropout_output.shape,flatten_output.shape,K2C_MAX_NDIM*sizeof(size_t));
 for (size_t m = 0; m < K2C_MAX_NDIM; ++m) {
 #pragma HLS loop_tripcount min=5 max=5
@@ -7204,18 +7204,18 @@ for (size_t i1 = 0; i1 < flatten_output.numel; ++i1)
 #pragma HLS loop_tripcount min=1600 max=1600
     dropout_output.array[i1] = flatten_output.array[i1];
 }
-k2c_dense(dense_output,&dropout_output,&dense_kernel, 
+k2c_dense(dense_output,&dropout_output,&dense_kernel,
 	&dense_bias,dense_fwork);
 
- } 
+ }
 
 void MOD2_initialize() {
 
-} 
+}
 
 void MOD2_terminate() {
 
-} 
+}
 void k2c_relu_func(float * x, const size_t size) {
 
     for (size_t i=0; i < size; ++i) {
@@ -7230,25 +7230,25 @@ void k2c_softmax_func(float * x, const size_t size) {
     float xmax = x[0];
     float sum = 0;
     for (size_t i11=0; i11 < size; ++i11) {
-#pragma HLS LOOP_TRIPCOUNT min=1 max=10
+#pragma HLS loop_tripcount min=10 max=10
         if (x[i11]>xmax) {
             xmax = x[i11];
         }
     }
 
     for (size_t i22=0; i22 < size; ++i22) {
-#pragma HLS LOOP_TRIPCOUNT min=1 max=10
+#pragma HLS loop_tripcount min=10 max=10
         x[i22] = expf(x[i22]-xmax);
     }
 
     for (size_t i33=0; i33 < size; ++i33) {
-#pragma HLS LOOP_TRIPCOUNT min=1 max=10
+#pragma HLS loop_tripcount min=10 max=10
         sum += x[i33];
     }
 
     sum = 1.0f/sum;
     for (size_t i44=0; i44 < size; ++i44) {
-//#pragma HLS LOOP_TRIPCOUNT min=1 max=10
+#pragma HLS loop_tripcount min=10 max=10
         x[i44] = x[i44]*sum;
     }
 }
@@ -7602,13 +7602,13 @@ void k2c_matmul(float * C, const float * A, const float * B, const size_t outrow
     }
 
     for (size_t i1 = 0 ; i1 < outrows; ++i1) {
-#pragma HLS loop_tripcount min=10 max=10
+#pragma HLS loop_tripcount min=1 max=1
         const size_t outrowidx = i1*outcols;
         const size_t inneridx = i1*innerdim;
         for (size_t k = 0; k < innerdim; ++k) {
-#pragma HLS loop_tripcount min=3 max=3
+#pragma HLS loop_tripcount min=1600 max=1600
             for (size_t j = 0;  j < outcols; ++j) {
-#pragma HLS loop_tripcount min=3 max=3
+#pragma HLS loop_tripcount min=10 max=10
                 C[outrowidx+j] += A[inneridx+k] * B[k*outcols+j];
             }
         }
